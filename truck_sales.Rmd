@@ -1,0 +1,47 @@
+---
+title: "Time series in the analysis of truck sales"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE,
+	keep_md =  FALSE
+)
+```
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+library(ggfortify)
+library(lmtest)
+library(forecast)
+library(stringr)
+library(zoo)
+library(knitr)
+library(lmtest)
+library(tseries)
+library(nortest)
+```
+
+## Data
+
+```{r}
+data<-read.csv("Truck_sales.csv")
+data_copy <- data
+colnames(data_copy) <- c("YearMonth","Sales") 
+kable(t(head(data_copy)))
+```
+
+```{r}
+data$Year <- as.numeric(paste0('20',str_sub(data$Month.Year, start = 1 , end =2)))  
+data$Month <- str_sub(data$Month.Year, start = 4, end = 6)
+data$YearMonth <- paste(data$Year, data$Month, sep = "-")
+```
+
+The following dataset shows monthly truck sales data from 2003 to 2014. It includes information on the number of trucks sold in each month.
+

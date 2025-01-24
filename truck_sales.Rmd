@@ -154,6 +154,36 @@ ggplot(monthly_sales, aes(x = Month, y = Number_Trucks_Sold, group = Year, color
 **Seasonality of sales:** Each year, sales rise in the first half of the year, reaching a peak in the summer months (June-July), and then fall in the second half of the year, reaching their lowest values in November and December.
 **Stable pattern across years:** The overall shape of the curves is very similar for all years, indicating a clear and repeatable pattern of seasonality.**Growth in sales over the years:** The higher lines for 2013-2014 indicate an overall increase in sales in those years compared to the beginning of the period (2003-2006). Particularly evident is the increase in sales during the summer months.
 
+### Time series analysis
 
+```{r}
+# Preparing data for time series analysis
+month_mapping <- c("Jan" = "01", "Feb" = "02", "Mar" = "03", "Apr" = "04",
+                   "May" = "05", "Jun" = "06", "Jul" = "07", "Aug" = "08",
+                   "Sep" = "09", "Oct" = "10", "Nov" = "11", "Dec" = "12")
+data$Month <- month_mapping[data$Month]
+data$YearMonth <- paste(data$Year, data$Month, sep = "-")
+data$YearMonth <- as.Date(paste0(data$YearMonth, "-01"))
+data <- data[, !(names(data) %in% c("Month.Year","Month", "Year"))]
+colnames(data) <- c("Sales", "YearMonth")
+data <- data[, c("YearMonth", "Sales")]
+```
+
+```{r}
+szereg <- zoo(data$Sales, order.by = data$YearMonth)
+# tsdisplay(szereg,col=2,lwd=2,las=1)
+par(mfrow = c(1, 2))
+acf(ts(data$Sales, frequency = 12), col = 2, lwd = 2, main = "Autokorelacja (ACF)")
+pacf(ts(data$Sales, frequency = 12), col = 2, lwd = 2, main = "Cząstkowa Autokorelacja (PACF)")
+par(mfrow = c(1, 1))
+```
+
+The graph shows ACF and PACF. ACF declines slowly, indicating a minor role for the MA component, while the sharp decline in PACF suggests a greater influence of the AR component.
+
+```{r}
+plot(stl(ts(data$Sales, frequency = 12),s.window="periodic"),col=2,lwd=2)
+```
+
+The graph shows the decomposition of the time series using the STL method. The seasonal component confirms the presence of regular patterns, the trend indicates long-term growth, and the residual component contains random fluctuations. The data can be described taking into account both trend and seasonality.
 
 

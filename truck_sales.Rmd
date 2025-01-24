@@ -173,8 +173,8 @@ data <- data[, c("YearMonth", "Sales")]
 szereg <- zoo(data$Sales, order.by = data$YearMonth)
 # tsdisplay(szereg,col=2,lwd=2,las=1)
 par(mfrow = c(1, 2))
-acf(ts(data$Sales, frequency = 12), col = 2, lwd = 2, main = "Autokorelacja (ACF)")
-pacf(ts(data$Sales, frequency = 12), col = 2, lwd = 2, main = "Cząstkowa Autokorelacja (PACF)")
+acf(ts(data$Sales, frequency = 12), col = 2, lwd = 2, main = "Autocorrelation (ACF)")
+pacf(ts(data$Sales, frequency = 12), col = 2, lwd = 2, main = "Partial Autocorrelation (PACF)")
 par(mfrow = c(1, 1))
 ```
 
@@ -237,10 +237,10 @@ forecast_holtwinters <- forecast(model_holtwinters, h = 12)
 x_range <- range(time(train_ts), time(test_ts), time(forecast_holtwinters$mean))
 y_range <- range(train_ts, forecast_holtwinters$mean, test_ts)
 plot(train_ts, col = 5, lwd = 4, xlim = x_range, ylim = y_range, 
-     main = "Prognoza metodą Holt-Winters", xlab = "Czas", ylab = "Wartości")
+     main = "Holt-Winters method forecasting", xlab = "Czas", ylab = "Wartości")
 lines(forecast_holtwinters$mean, col = 4, lwd = 3)
 lines(test_ts, col = 2, lwd = 2,alpha=0.5)
-legend("topleft", legend = c("Dane treningowe", "Prognoza", "Dane testowe"), col = c(5, 4, 2), lwd = 2)
+legend("topleft", legend = c("Training data", "Forecast", "Test data"), col = c(5, 4, 2), lwd = 2)
 ```
 
 The forecast shows seasonality and trend in the training data well, which means that the method has correctly captured patterns in the data. Comparing the forecast with the test data shows that the model works well, although there may be minor differences.
@@ -277,3 +277,40 @@ kable(test_results_holt)
 
 In the tests performed, we can see that the assumption of normality of errors has been met, because in both tests the p-values are greater than 0.05. The assumption of homogeneity of variance has been violated, because in the first test the p-value is less than 0.05, which forces us to reject the null hypothesis, although and Goldfeld-Quandt test says to accept it.
 
+## Polynomial regression
+
+```{r}
+aic_values <- numeric(length(1:25))
+for (degree in 1:25) {
+  model <- lm(szereg ~ poly(1:length(szereg), degree))
+  aic_values[degree] <- AIC(model)
+}
+plot(1:25, aic_values, type = "b", xlab = "Polynomial Degree", ylab = "AIC",
+     main = "AIC w zależnosci od stopnia wielomianu")
+```
+
+The graph shows that the best degree of the polynomial is 24, since it has the lowest AIC score.
+
+```{r}
+model_poly <- lm(szereg ~ poly(1:144, 24))
+forecast_poly <- predict(model_poly,newdata = list(1:144))
+```
+
+```{r}
+forecast_poly_ts <- ts(
+  coredata(forecast_poly[133:144]), 
+  frequency = 12,
+  start = c(as.numeric(format(start(test_szereg), "%Y")), 
+            as.numeric(format(start(test_szereg), "%m")))
+)
+x_range <- range(time(train_ts), time(test_ts), time(forecast_poly_ts))
+y_range <- range(c(train_ts, forecast_poly_ts, test_ts))
+plot(train_ts, col = 5, lwd = 4,
+     main = "Forecasting by polynomial regression method", xlab = "Czas", ylab = "Wartości",
+     xlim = x_range, ylim = y_range)
+lines(forecast_poly_ts, col = 4, lwd = 3)
+lines(test_ts, col = rgb(1, 0, 0, alpha = 0.5), lwd = 2)
+legend("topleft", legend = c("Training data", "Forecast", "Test data"), col = c(5, 4, 2), lwd = 2)
+```
+
+The forecast reproduces the test data reasonably well, accounting for both seasonality and the overall trend of the data. However, compared to the Holt-Winters method, polynomial regression performs slightly worse in terms of forecast accuracy, especially for more complex seasonal patterns.

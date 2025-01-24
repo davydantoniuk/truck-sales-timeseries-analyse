@@ -361,3 +361,63 @@ kable(test_results)
 
 Test results indicate that the residuals of the polynomial regression model have a normal distribution. The assumption of homogeneity of variance was violated, as both tests have p-values less than 0.05. Tests for autocorrelation indicate that the residuals are correlated, which is a good signal for time series analysis.
 
+## SARIMA
+
+```{r echo = TRUE}
+sarima <- auto.arima(train_ts, seasonal = TRUE, stepwise = FALSE, approximation = FALSE)
+summary(sarima)
+```
+
+This code snippet uses the `auto.arima` function from the `forecast` package to automatically construct the `SARIMA` model.
+The SARIMA model includes both autoregressive $AR$ and seasonal $SAR$ components adjusted for data with pronounced trend and seasonality. The coefficients of the model indicate a moderate effect of ordinary and seasonal lags on the time series. The model has a good fit, as evidenced by low error values and low autocorrelation of residuals($ACF1 = 0.0073$).
+The `SARIMA` model, based on the estimated parameters, can be written in the form:
+$$(1 + 0.2851 B)(1 + 0.0826 B^{12} - 0.2318 B^{24})(1 - B)(1 - B^{12}) Y_t = \epsilon_t$$.
+
+```{r}
+forecast_sarima <- forecast(sarima, h = 12)
+x_range <- range(time(train_ts), time(test_ts), time(forecast_sarima$mean))
+y_range <- range(train_ts, forecast_sarima$mean, test_ts)
+plot(train_ts, col = 5, lwd = 4, xlim = x_range, ylim = y_range, 
+     main = "SARIMA model forecast", xlab = "Czas", ylab = "Wartości")
+lines(forecast_sarima$mean, col = 4, lwd = 2)
+lines(test_ts, col = 2, lwd = 2)
+legend("topleft", legend = c("Training data", "Forecast", "Test data"), 
+       col = c(5, 4, 2), lwd = 2)
+```
+
+The graph shows a time series forecast made using the SARIMA model. The forecast reproduces the test data well, taking into account both trend and seasonality, which shows the effectiveness of the model in analyzing this type of data.
+
+### Checking the assumptions
+
+```{r message=FALSE, warning=FALSE}
+# Calculation of residuals
+residuals_sarima <- residuals(sarima)
+residuals_sarima <- coredata(residuals_sarima)
+fitted_values <- fitted(sarima)
+# Normality of the residuals
+shapiro <- shapiro.test(residuals_sarima)
+ad <- ad.test(residuals_sarima)
+# Homogeneity of variance
+bp <- bptest(residuals_sarima ~ fitted_values)
+gq <- gqtest(residuals_sarima ~ fitted_values)
+
+test_results_sarima <- data.frame(
+  Nazwa_testu = c(
+    "Shapiro-Wilk", "Anderson-Darling",
+    "Breusch-Pagan", "Goldfeld-Quandt"
+  ),
+  Statystyka = c(
+    shapiro$statistic, ad$statistic,
+    bp$statistic, gq$statistic
+  ),
+  p_value = c(
+    shapiro$p.value, ad$p.value,
+    bp$p.value, gq$p.value
+  )
+)
+kable(test_results_sarima)
+```
+
+The assumption of normality of the residuals was violated because the p-value is less than 0.05 in the second test. The assumption of homogeneity of variance was also violated because the p-values are less than 0.05 in both tests.
+
+

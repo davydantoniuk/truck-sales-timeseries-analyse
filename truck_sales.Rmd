@@ -68,5 +68,92 @@ transposed_stats <- transposed_stats[-1, ]
 kable(transposed_stats, align = "c")
 ```
 
+## Data visualization
+
+### Basic charts
+
+```{r}
+library(ggplot2)
+ggplot(data, aes(x = factor(YearMonth, levels = unique(YearMonth)), y = Number_Trucks_Sold)) +
+  geom_line(color = "blue", group = 1) +  
+  geom_point() + 
+  labs(title = "Sprzedaż ciężarówek w czasie",
+       x = "Rok",
+       y = "Liczba sprzedanych ciężarówek") +
+  scale_x_discrete(labels = ifelse(data$Month == "Jan", data$Year, "")) +  
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 0, hjust = 0.5, size = 10))  
+```
+
+**Growth trend:**The number of trucks sold has steadily increased from 2003 to 2014, indicating that the market is growing.
+**Seasonality:** Sales show clear seasonality with regular ups and downs in certain months, such as December or January.**Variability:**The difference between the highest and lowest sales during the year increased significantly between 2010 and 2014 compared to the 2003-2006 period.**Local declines:** Periodic declines in sales (e.g. 2009-2010) may be due to external factors such as the financial crisis.**Maximum sales:**The highest sales were recorded at the end of 2014, confirming the dynamic development of the market.
+
+```{r}
+monthly_sales <- aggregate(Number_Trucks_Sold ~ Month, data, mean)
+monthly_sales$Month <- factor(monthly_sales$Month, levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
+
+ggplot(monthly_sales, aes(x = Month, y = Number_Trucks_Sold)) +
+  geom_bar(stat = "identity", fill = "lightgreen") +
+  labs(title = "Średnia sprzedaż ciężarówek w podziale na miesiące",
+       x = "Miesiąc",
+       y = "Średnia sprzedaż") +
+  theme_minimal()
+```
+
+**Seasonality of sales:** The highest average sales occur during the summer (May-August), suggesting that summer is the 
+most active time in the industry. **Best months:** July and August lead the way in terms of average sales, which may be 
+due to companies preparing before the end of the third quarter.**Lower sales:** The lowest results occur in January and 
+February, which can be linked to the New Year period and lower investment activity.**Slow growth:** From March to May, 
+sales rise steadily, peaking in the summer and then falling in September and October, indicating a seasonal slowdown 
+after the vacations.
+
+```{r}
+print(ggplot(data, aes(y = Number_Trucks_Sold)) +
+  geom_boxplot(fill = "lightblue", color = "black") + 
+  labs(title = "Rozkład sprzedaży ciężarówek (wszystkie lata)",
+       y = "Liczba sprzedanych ciężarówek",
+       x = "") +
+  theme_minimal() +
+  theme(axis.text.x = element_blank(),  
+        axis.ticks.x = element_blank()))
+```
+
+**Median sales:** The median (the line in the middle of the box) is about 500 trucks sold, which means that half the months had higher sales and the other half had lower sales.**Interquartile range (IQR):** Most of the data (50%) is in the range of about 400 to 600 trucks sold, indicating relatively little variability in sales in most months.
+**No outliers:** There are no outlier points on the chart, suggesting that sales are fairly uniform and no extreme low or high values. **Range of values:** The box plot shows that the minimum sales are around 250 trucks and the maximum sales are around 750 trucks per month.
+
+```{r message=FALSE, warning=FALSE}
+yearly_sales <- aggregate(Number_Trucks_Sold ~ Year, data, sum)
+full_years <- data.frame(Year = 2003:2014)
+yearly_sales <- merge(full_years, yearly_sales, by = "Year", all.x = TRUE)
+yearly_sales$Number_Trucks_Sold[is.na(yearly_sales$Number_Trucks_Sold)] <- 0
+ggplot(yearly_sales, aes(x = Year, y = Number_Trucks_Sold)) +
+  geom_bar(stat = "identity", fill = "orange") +
+  labs(title = "Całkowita sprzedaż ciężarówek w podziale na lata",
+       x = "Rok",
+       y = "Całkowita sprzedaż") +
+  scale_x_continuous(breaks = 2003:2014) +
+  theme_minimal()
+```
+
+**Constant sales growth:** Total truck sales have been growing year-on-year in an almost uninterrupted manner, 
+indicating the market's development from 2003 to 2014.**Slower growth from 2009 to 2010:** Since 2011, a clear 
+accelerated growth in sales has been evident, culminating in 2014, the best year in the period under review.
+
+```{r message=FALSE, warning=FALSE}
+monthly_sales <- aggregate(Number_Trucks_Sold ~ Month + Year, data, mean)
+monthly_sales$Month <- factor(monthly_sales$Month, levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
+ggplot(monthly_sales, aes(x = Month, y = Number_Trucks_Sold, group = Year, color = factor(Year))) +
+  geom_line() +
+  labs(title = "Średnia miesięczna sprzedaż w podziale na lata",
+       x = "Miesiąc",
+       y = "Średnia sprzedaż",
+       color = "Rok") +
+  theme_minimal()
+```
+
+**Seasonality of sales:** Each year, sales rise in the first half of the year, reaching a peak in the summer months (June-July), and then fall in the second half of the year, reaching their lowest values in November and December.
+**Stable pattern across years:** The overall shape of the curves is very similar for all years, indicating a clear and repeatable pattern of seasonality.**Growth in sales over the years:** The higher lines for 2013-2014 indicate an overall increase in sales in those years compared to the beginning of the period (2003-2006). Particularly evident is the increase in sales during the summer months.
+
+
 
 

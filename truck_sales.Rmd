@@ -314,3 +314,50 @@ legend("topleft", legend = c("Training data", "Forecast", "Test data"), col = c(
 ```
 
 The forecast reproduces the test data reasonably well, accounting for both seasonality and the overall trend of the data. However, compared to the Holt-Winters method, polynomial regression performs slightly worse in terms of forecast accuracy, especially for more complex seasonal patterns.
+
+### Diagnostic charts 
+
+```{r}
+autoplot(model_poly)
+```
+
+The diagnostic charts indicate that the polynomial regression model may have some problems. The “Residuals vs Fitted” graph shows curvature, suggesting that the model has not fully captured the structure of the data. The “Normal Q-Q” graph shows that the residuals are not perfectly normally distributed, especially at the ends, indicating a possible deviation from the assumption of normality. “Scale-Location” shows an increasing variance of the residuals, which may suggest a heteroskedasticity problem. The “Residuals vs Leverage” chart identifies several points of high influence (high leverage) that may significantly affect the model fit.
+
+### Checking the assumptions
+
+```{r message=FALSE, warning=FALSE}
+# Calculation of residuals
+residuals_poly <- residuals(model_poly)
+residuals_poly <- coredata(residuals_poly)
+fitted_poly <- fitted(model_poly)
+# Normality of the residuals
+shapiro <- shapiro.test(residuals_poly)
+ad <- ad.test(residuals_poly)
+# Jednorodność wariancji
+bp <- bptest(residuals_poly~fitted_poly)
+gq <- gqtest(residuals_poly~fitted_poly)
+# Autocorrelation
+dw <- dwtest(model_poly)
+bg <- bgtest(model_poly)
+test_results <- data.frame(
+  Nazwa_testu = c(
+    "Shapiro-Wilk", "Anderson-Darling",
+    "Breusch-Pagan", "Goldfeld-Quandt",
+    "Durbin-Watson", "Breusch-Godfrey"
+  ),
+  Statystyka = c(
+    shapiro$statistic, ad$statistic,
+    bp$statistic, gq$statistic,
+    dw$statistic, bg$statistic
+  ),
+  p_value = c(
+    shapiro$p.value, ad$p.value,
+    bp$p.value, gq$p.value,
+    dw$p.value, bg$p.value
+  )
+)
+kable(test_results)
+```
+
+Test results indicate that the residuals of the polynomial regression model have a normal distribution. The assumption of homogeneity of variance was violated, as both tests have p-values less than 0.05. Tests for autocorrelation indicate that the residuals are correlated, which is a good signal for time series analysis.
+

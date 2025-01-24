@@ -45,3 +45,28 @@ data$YearMonth <- paste(data$Year, data$Month, sep = "-")
 
 The following dataset shows monthly truck sales data from 2003 to 2014. It includes information on the number of trucks sold in each month.
 
+## Basic statistics
+
+```{r}
+basic_stats <- data.frame(
+  Metric = c("N obs.", "Średnia", "Odch. stand.", "Min", 
+             "1 kwartyl", "Mediana", "3 kwartyl", "Max"),
+  Value = c(
+    nrow(data),                       
+    mean(data$Number_Trucks_Sold, na.rm = TRUE),  
+    sd(data$Number_Trucks_Sold, na.rm = TRUE),    
+    min(data$Number_Trucks_Sold, na.rm = TRUE), 
+    quantile(data$Number_Trucks_Sold, 0.25, na.rm = TRUE),
+    median(data$Number_Trucks_Sold, na.rm = TRUE),          
+    quantile(data$Number_Trucks_Sold, 0.75, na.rm = TRUE),  
+    max(data$Number_Trucks_Sold, na.rm = TRUE)              
+  )
+)
+transposed_stats <- as.data.frame(t(basic_stats))
+colnames(transposed_stats) <- basic_stats$Metric
+transposed_stats <- transposed_stats[-1, ]  
+kable(transposed_stats, align = "c")
+```
+
+
+

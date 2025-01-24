@@ -186,4 +186,44 @@ plot(stl(ts(data$Sales, frequency = 12),s.window="periodic"),col=2,lwd=2)
 
 The graph shows the decomposition of the time series using the STL method. The seasonal component confirms the presence of regular patterns, the trend indicates long-term growth, and the residual component contains random fluctuations. The data can be described taking into account both trend and seasonality.
 
+### Stationarity of the time series
+
+In the previous graph, you can see that the time series has an upward trend and seasonality, which means that it is not stationary. So, we need to do differentiation to make it stationary. So we will do a first-order differentiation we will do a visualization and check it with appropriate tests.
+
+```{r}
+diff_szereg <- diff(szereg)
+plot(diff_szereg, col = 2, lwd = 2)
+```
+
+In the given graph you can see that the first-order variation made the time series stationary. Now we will check it with the appropriate tests.
+
+```{r}
+adf_test <- adf.test(diff_szereg)
+kpss_test <- kpss.test(diff_szereg)
+pp_test <- pp.test(diff_szereg)
+test_results <- data.frame(
+  Nazwa_testu = c("Augmented Dickey-Fuller", "Kwiatkowski-Phillips-Schmidt-Shin", "Phillips-Perron"),
+  Statystyka = c(adf_test$statistic, kpss_test$statistic, pp_test$statistic),
+  p_value = c(adf_test$p.value, kpss_test$p.value, pp_test$p.value)
+)
+kable(test_results)
+```
+
+Three tests supported the stationarity of the time series.
+
+```{r message=FALSE, warning=FALSE}
+## Train test split
+train_size <- nrow(data) - 12
+train_szereg <- szereg[1:train_size]
+test_szereg <- szereg[(train_size + 1):nrow(data)]
+train_ts <- ts(coredata(train_szereg), frequency = 12, 
+               start = c(as.numeric(format(start(train_szereg), "%Y")), 
+                         as.numeric(format(start(train_szereg), "%m"))))
+test_ts <- ts(coredata(test_szereg), frequency = 12,
+              start = c(as.numeric(format(start(test_szereg), "%Y")), 
+                        as.numeric(format(start(test_szereg), "%m"))))
+```
+
+
+
 

@@ -420,4 +420,35 @@ kable(test_results_sarima)
 
 The assumption of normality of the residuals was violated because the p-value is less than 0.05 in the second test. The assumption of homogeneity of variance was also violated because the p-values are less than 0.05 in both tests.
 
+## Model comparison
+
+```{r}
+metrics_holtwinters <- calculate_metrics(test_ts, forecast_holtwinters$mean)
+metrics_poly <- calculate_metrics(test_ts, forecast_poly_ts) 
+metrics_sarima <- calculate_metrics(test_ts, forecast_sarima$mean)
+
+metrics_df <- data.frame(
+  Model = c("Holt-Winters", "Polynomial Regression", "SARIMA"),
+  R2 = c(calculate_r_squared(model_holtwinters, train_ts), calculate_r_squared(model_poly, szereg), calculate_r_squared_sarima(sarima, train_ts)),
+  MAE = c(metrics_holtwinters$MAE, metrics_poly$MAE, metrics_sarima$MAE),
+  MSE = c(metrics_holtwinters$MSE, metrics_poly$MSE, metrics_sarima$MSE),
+  RMSE = c(metrics_holtwinters$RMSE, metrics_poly$RMSE, metrics_sarima$RMSE),
+  MAPE = c(metrics_holtwinters$MAPE, metrics_poly$MAPE, metrics_sarima$MAPE)
+)
+kable(metrics_df, col.names = c("Model", "R2", "MAE", "MSE", "RMSE", "MAPE"), align = "c")
+```
+Based on a comparison of the results of the three models (Holt-Winters, Polynomial Regression, SARIMA), it can be seen that the Holt-Winters model performed best in all key measures. The SARIMA model performed slightly worse, with higher errors and smaller $R^2$, but still outperformed Polynomial Regression. Polynomial regression was the least effective, with the highest error values, which may be due to the difficulty in capturing complex seasonal patterns in the data.
+
+## Conclusions:
+
+**Holt-Winters:**\
+The Holt-Winters model is the best model for forecasting truck sales because it has achieved the best results in key metrics. It is able to reproduce both trend and seasonality in the data well, allowing it to accurately forecast future values.\
+**Polynomial regression:**\
+Polynomial regression was the least effective model because it had the highest error values and lowest $R^2$. It may have difficulty capturing complex seasonal patterns in the data.\
+
+**SARIMA:**\
+The SARIMA model produced results with slightly higher errors than Holt-Winters, but better than polynomial regression.\ 
+
+So Holt-Winters and SARIMA are good models for time series analysis, and depending on the data, they may show better or worse results when comparing one with the other, but both give quite good results and are very effective in time series analysis.
+
 

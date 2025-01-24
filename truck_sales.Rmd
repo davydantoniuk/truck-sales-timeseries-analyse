@@ -26,6 +26,8 @@ library(knitr)
 library(lmtest)
 library(tseries)
 library(nortest)
+library(ggplot2)
+library(gridExtra)
 ```
 
 ```{r}
@@ -472,6 +474,37 @@ kable(metrics_df, col.names = c("Model", "R2", "MAE", "MSE", "RMSE", "MAPE"), al
 ```
 Based on a comparison of the results of the three models (Holt-Winters, Polynomial Regression, SARIMA), it can be seen that the Holt-Winters model performed best in all key measures. The SARIMA model performed slightly worse, with higher errors and smaller $R^2$, but still outperformed Polynomial Regression. Polynomial regression was the least effective, with the highest error values, which may be due to the difficulty in capturing complex seasonal patterns in the data.
 
+### Visualization of results
+
+```{r}
+metrics_df$Model[metrics_df$Model == "Polynomial Regression"] <- "Poly Reg"
+plot_r2 <- ggplot(metrics_df, aes(x = Model, y = R2, fill = Model)) +
+  geom_bar(stat = "identity") +
+  labs(title = expression(R^2 ~ " Comparison"), y = expression(R^2), x = NULL) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position = "none")
+
+plot_mae <- ggplot(metrics_df, aes(x = Model, y = MAE, fill = Model)) +
+  geom_bar(stat = "identity") +
+  labs(title = "MAE Comparison", y = "MAE", x = NULL) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position = "none")
+
+plot_mse <- ggplot(metrics_df, aes(x = Model, y = MSE, fill = Model)) +
+  geom_bar(stat = "identity") +
+  labs(title = "MSE Comparison", y = "MSE", x = NULL) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position = "none")
+
+plot_mape <- ggplot(metrics_df, aes(x = Model, y = MAPE, fill = Model)) +
+  geom_bar(stat = "identity") +
+  labs(title = "MAPE Comparison", y = "MAPE (%)", x = NULL) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position = "none")
+
+grid.arrange(plot_r2, plot_mae, plot_mse, plot_mape, ncol = 2)
+```
+
 ## Conclusions:
 
 **Holt-Winters:**\
@@ -483,5 +516,7 @@ Polynomial regression was the least effective model because it had the highest e
 The SARIMA model produced results with slightly higher errors than Holt-Winters, but better than polynomial regression.\ 
 
 So Holt-Winters and SARIMA are good models for time series analysis, and depending on the data, they may show better or worse results when comparing one with the other, but both give quite good results and are very effective in time series analysis.
+
+
 
 

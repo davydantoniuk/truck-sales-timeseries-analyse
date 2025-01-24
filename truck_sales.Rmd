@@ -28,6 +28,39 @@ library(tseries)
 library(nortest)
 ```
 
+```{r}
+## Help functions
+calculate_metrics <- function(actual, forecast) {
+  mae <- mean(abs(actual - forecast))
+  mse <- mean((actual - forecast)^2)
+  rmse <- sqrt(mse)
+  mape <- mean(abs(actual - forecast) / actual) * 100
+  return(list(MAE = mae, MSE = mse, RMSE = rmse, MAPE = mape))
+}
+calculate_r_squared <- function(model, actual_values) {
+  fitted_values <- fitted(model)
+  mean_actual <- mean(actual_values)
+  sst <- sum((actual_values - mean_actual)^2)
+  ssr <- sum((actual_values - fitted_values[,1])^2)  
+  r_squared <- 1 - (ssr / sst)
+  return(r_squared)
+}
+calculate_r_squared_sarima <- function(model, actual_values) {
+  if (inherits(model, "Arima")) {
+    fitted_values <- fitted(model)
+  } else if (inherits(model, "HoltWinters")) {
+    fitted_values <- fitted(model)[,1] 
+  } else {
+    stop("Unsupported model type. Please provide a HoltWinters or ARIMA model.")
+  }
+  mean_actual <- mean(actual_values)
+  sst <- sum((actual_values - mean_actual)^2)
+  ssr <- sum((actual_values - fitted_values)^2)
+  r_squared <- 1 - (ssr / sst)
+  return(r_squared)
+}
+```
+
 ## Data
 
 ```{r}
